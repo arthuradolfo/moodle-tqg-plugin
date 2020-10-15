@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="blocks/tqg_plugin/db" VERSION="2020101300" COMMENT="XMLDB file for blocks/tqg_plugin"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
+>
+    <TABLES>
+        <TABLE NAME="tqg_login" COMMENT="TQG login">
+            <FIELDS>
+                <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="user_email"/>
+                <FIELD NAME="user_email" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="user_token"/>
+                <FIELD NAME="user_token" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="user_email" NEXT="intro"/>
+            </FIELDS>
+            <KEYS>
+                <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+            </KEYS>
+            <INDEXES>
+                <INDEX NAME="user_email" UNIQUE="true" FIELDS="user_email"/>
+            </INDEXES>
+        </TABLE>
+    </TABLES>
+</XMLDB>
