@@ -61,10 +61,32 @@ function block_tqg_plugin_validate_token(e, args) {
             failure: function (o, response) {
                 var data = Y.JSON.parse(response.responseText);
                 if(data.message) {
-                    alert(data.message);
+                    Y.io(M.cfg.wwwroot + '/blocks/tqg_plugin/actions/delete_token.php',
+                        { method: 'POST',
+                            data: {'email': args.email},
+                            on: {
+                                success: function (o, response) {
+                                    alert('User does not exist');
+                                    location.reload();
+                                },
+                                failure: function(o, response) {
+                                    alert('Failed to delete token.');
+                                }
+                            }});
                 }
                 else {
-                    alert(data.errors);
+                    Y.io(M.cfg.wwwroot + '/blocks/tqg_plugin/actions/delete_token.php',
+                        { method: 'POST',
+                            data: {'email': args.email},
+                            on: {
+                                success: function (o, response) {
+                                    alert('User does not exist');
+                                    location.reload();
+                                },
+                                failure: function(o, response) {
+                                    alert('Failed to delete token.');
+                                }
+                            }});
                 }
             }
         }

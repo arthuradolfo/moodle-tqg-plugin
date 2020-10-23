@@ -19,8 +19,19 @@ class block_tqg_plugin extends block_base {
 
         if (has_capability('mod/quiz:manage', context_course::instance($COURSE->id))) {
             $this->content->text = '<strong>' . get_string('options', 'block_tqg_plugin') . '</strong><br/>'
-                .$OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/questions.php', array('course_id' => $COURSE->id)),
-                    get_string('questions', 'block_tqg_plugin')) . '<br/><br/>'
+                .$OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/questions.php',
+                    array('course_id' => $COURSE->id,
+                        'email' => $this->config->email,
+                        'hostname' => $this->config->hostname,
+                        'port' => $this->config->port)),
+                    get_string('questions', 'block_tqg_plugin')) . '<br/>';
+
+            $this->content->text .= $OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/categories.php',
+                    array('course_id' => $COURSE->id,
+                        'email' => $this->config->email,
+                        'hostname' => $this->config->hostname,
+                        'port' => $this->config->port)),
+                    get_string('categories', 'block_tqg_plugin')) . '<br/><br/>'
                 .'<strong>' . get_string('connection_settings', 'block_tqg_plugin') . '</strong><br/>';
 
             if(!empty($this->config->hostname) && !empty($this->config->port)) {
@@ -38,6 +49,7 @@ class block_tqg_plugin extends block_base {
                             new component_action('click', 'block_tqg_plugin_validate_token',
                                 array('hostname' => $this->config->hostname,
                                     'port' => $this->config->port,
+                                    'email' => $token->user_email,
                                     'token' => $token->user_token))) . '<br/>';
 
                     $this->content->text .= $OUTPUT->action_link(new moodle_url('#'),

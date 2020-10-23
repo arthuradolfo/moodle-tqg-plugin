@@ -96,6 +96,10 @@ echo '
 
 if ($category_id) {
     $questions = $DB->get_records('question', array('category' => $category_id));
+}
+else {
+    $questions = $DB->get_records('question');
+}
 
     echo '
   <form action="questions.php" method="post">
@@ -142,7 +146,7 @@ if ($category_id) {
                    <input type="submit" value="Import"/>
                    </form>
                    </div>' . $OUTPUT->box_end();
-}
+
 
 echo '
   <p><a href="' . $CFG->wwwroot . '/course/view.php?id=' . $course_id . '">' . get_string('return_to_course', 'block_tqg_plugin') . '</a></p>';
