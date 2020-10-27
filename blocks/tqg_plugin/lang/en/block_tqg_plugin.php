@@ -31,3 +31,5 @@ $string['export'] = 'Export';
 $string['import'] = 'Import';
 $string['moodle_categories'] = 'Moodle Categories';
 $string['tqg_categories'] = 'TQG Categories';
+$string['moodle_questions'] = 'Moodle Questions';
+$string['tqg_questions'] = 'TQG Questions';

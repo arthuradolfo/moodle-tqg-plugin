@@ -12,7 +12,7 @@ services:
     image: 'docker.io/bitnami/moodle:3-debian-10'
     ports:
       - '8081:8080'
-      - '8443:8443'
+      - '8444:8443'
     environment:
       - MOODLE_DATABASE_HOST=mariadb
       - MOODLE_DATABASE_PORT_NUMBER=3306

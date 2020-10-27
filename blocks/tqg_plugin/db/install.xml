@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <XMLDB PATH="blocks/tqg_plugin/db" VERSION="2020101300" COMMENT="XMLDB file for blocks/tqg_plugin"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:noNamespaceSchemaLocation="../../lib/xmldb/xmldb.xsd"
+       xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
     <TABLES>
         <TABLE NAME="tqg_login" COMMENT="TQG login">

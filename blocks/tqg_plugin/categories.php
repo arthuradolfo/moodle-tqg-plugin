@@ -27,6 +27,7 @@ $PAGE->set_title(get_string('categories', 'block_tqg_plugin'));
 $PAGE->set_heading($course->fullname);
 $PAGE->navbar->add(get_string('tri_questionnaire_generator', 'block_tqg_plugin'));
 $PAGE->navbar->add(get_string('categories', 'block_tqg_plugin'));
+$PAGE->requires->js('/blocks/tqg_plugin/js/tqg_utilities.js');
 
 if (optional_param('export', 0, PARAM_BOOL)) {
     $categories_id = required_param_array('categories', PARAM_INT);
@@ -94,7 +95,7 @@ $contexts = new question_edit_contexts(context_course::instance($COURSE->id));
 //         $mform->addElement('selectgroups', 'questioncategory', get_string('questioncategory', 'ucat'),
 //                 question_category_options($contexts->having_cap('moodle/question:add')));
 $opts = question_category_options($contexts->having_cap('moodle/question:add'));
-echo '
+echo '<table><tr><td>
   <h2>'.get_string('moodle_categories', 'block_tqg_plugin').'</h2>
   <form action="categories.php">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
@@ -105,7 +106,7 @@ echo '
     <table class="generaltable">
       <tr>
         <td class="cell">
-          <input type="checkbox" onclick="cat_checkall(this)"/>
+          <input type="checkbox" onclick="tqg_checkall(this)"/>
         </td>
         <td class="cell">
           '.get_string("name", "block_tqg_plugin").'
@@ -126,20 +127,20 @@ foreach ($opts as $optgroup) {
 echo '
     </table>
     <input type="submit" name="save" value="' . get_string('export', 'block_tqg_plugin') . '"/>
-  </form>';
+  </form></td>';
 
-echo '
+echo '<td>
   <h2>'.get_string('tqg_categories', 'block_tqg_plugin').'</h2>
   <form action="categories.php">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
     <input type="hidden" name="email" value="' . $email . '"/>
     <input type="hidden" name="hostname" value="' . $hostname . '"/>
     <input type="hidden" name="port" value="' . $port . '"/>
-    <input type="hidden" name="export" value="1"/>
+    <input type="hidden" name="import" value="1"/>
     <table class="generaltable">
       <tr>
         <td class="cell">
-          <input type="checkbox" onclick="cat_checkall(this)"/>
+          <input type="checkbox" onclick="tqg_checkall(this)"/>
         </td>
         <td class="cell">
           '.get_string("name", "block_tqg_plugin").'
@@ -175,7 +176,7 @@ if($token) {
 echo '
     </table>
     <input type="submit" name="save" value="' . get_string('import', 'block_tqg_plugin') . '"/>
-  </form>';
+  </form></td></tr></table>';
 
 
 echo '
