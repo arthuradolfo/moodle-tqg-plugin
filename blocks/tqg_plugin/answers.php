@@ -14,7 +14,7 @@ $email = required_param('email', PARAM_TEXT);
 $hostname = required_param('hostname', PARAM_TEXT);
 $port = required_param('port', PARAM_INT);
 $course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
-$category_id = optional_param('category_id', null, PARAM_INT);
+$question_id = optional_param('question_id', null, PARAM_INT);
 $context = \context_course::instance($course->id);
 
 require_capability('mod/quiz:manage', $context);
@@ -28,37 +28,30 @@ $PAGE->navbar->add(get_string('questions', 'block_tqg_plugin'));
 $PAGE->requires->js('/blocks/tqg_plugin/js/tqg_utilities.js');
 
 if (optional_param('export', 0, PARAM_BOOL)) {
-    $questions_id = required_param_array('questions', PARAM_INT);
+    $answers_id = required_param_array('answers', PARAM_INT);
 
-    $questions = array();
-    foreach ($questions_id as $question_id)
+    $answers = array();
+    foreach ($answers_id as $answer_id)
     {
-        $question = $DB->get_record('question', array('id' => $question_id));
-        $question_aux = array();
-        $question_aux['moodle_id'] = $question->id;
-        $question_aux['category_moodle_id'] = $question->category;
-        $question_aux['type'] = $question->qtype;
-        $question_aux['name'] = $question->name;
-        $question_aux['questiontext'] = $question->questiontext;
-        $question_aux['questiontext_format'] = $question->questiontextformat;
-        $question_aux['generalfeedback'] = $question->generalfeedback;
-        $question_aux['generalfeedback_format'] = $question->generalfeedbackformat;
-        $question_aux['defaultgrade'] = $question->defaultgrade;
-        $question_aux['penalty'] = $question->penalty;
-        $question_aux['hidden'] = $question->hidden;
-        $question_aux['idnumber'] = $question->idnumber;
-        $questions[] = $question_aux;
+        $answer = $DB->get_record('question_answers', array('id' => $answer_id));
+        $answer_aux = array();
+        $answer_aux['moodle_id'] = $answer->id;
+        $answer_aux['question_moodle_id'] = $answer->question;
+        $answer_aux['text'] = $answer->answer;
+        $answer_aux['format'] = $answer->answerformat;
+        $answer_aux['fraction'] = $answer->fraction;
+        $answer_aux['feedback'] = $answer->feedback;
+        $answer_aux['feedback_format'] = $answer->feedbackformat;
+        $answers[] = $answer_aux;
     }
 
     $token = $DB->get_record('tqg_login', array('user_email' => $email));
-
-    echo "<script>console.log(" . json_encode( $questions ).");</script>";
 
     if($token) {
         $options = array(
             'http' => array(
                 'method'  => 'POST',
-                'content' => json_encode( $questions ),
+                'content' => json_encode( $answers ),
                 'header'=>  "Content-Type: application/json\r\n" .
                     "Accept: application/json\r\n" .
                     "Authorization: Bearer ". $token->user_token ."\r\n"
@@ -66,7 +59,7 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         );
 
         $context  = stream_context_create( $options );
-        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/questions', false, $context );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/answers', false, $context );
         $response = json_decode( $result );
     }
 
@@ -100,22 +93,31 @@ $contexts = new question_edit_contexts(context_course::instance($COURSE->id));
 //                 question_category_options($contexts->having_cap('moodle/question:add')));
 $opts = question_category_options($contexts->having_cap('moodle/question:add'));
 
-echo '<form action="questions.php">
+$questions = array();
+foreach ($opts as $optgroup) {
+    foreach ($optgroup as $id => $category) {
+        $id = intval($id);
+        $questions = array_merge($DB->get_records_select('question',
+            'category = '. $id .' AND (qtype="multichoice" OR qtype="truefalse")'
+        ), $questions);
+    }
+}
+
+
+echo '<form action="answers.php">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
     <input type="hidden" name="email" value="' . $email . '"/>
     <input type="hidden" name="hostname" value="' . $hostname . '"/>
     <input type="hidden" name="port" value="' . $port . '"/>
-    <select name="category_id" onchange="this.form.submit()">
+    <select name="question_id" onchange="this.form.submit()">
       <option value="0">' . get_string('select') . '</option>';
-foreach ($opts as $optgroup) {
-    foreach ($optgroup as $id => $category) {
-        if ($id == $category_id) {
-            $selected = ' selected="selected"';
-        } else {
-            $selected = '';
-        }
-        echo '<option value="' . $id . '"' . $selected . '>' . $category . '</option>';
+foreach ($questions as $question) {
+    if ($question->id == $question_id) {
+        $selected = ' selected="selected"';
+    } else {
+        $selected = '';
     }
+    echo '<option value="' . $question->id . '"' . $selected . '>' . $question->name . '</option>';
 }
 echo '
     </select>
@@ -123,19 +125,17 @@ echo '
 
 echo '
   <table><tr><td>
-  <h2>'.get_string('moodle_questions', 'block_tqg_plugin').'</h2>';
+  <h2>'.get_string('moodle_answers', 'block_tqg_plugin').'</h2>';
 
-$questions = array();
-if ($category_id) {
-    $questions = $DB->get_records_select('question',
-        'category = '. $category_id .' AND (qtype="multichoice" OR qtype="truefalse")'
-    );
+$answers = array();
+if ($question_id) {
+    $answers = $DB->get_records('question_answers', ['question' => $question_id]);
 }
 
     echo '
   <form action="questions.php" method="post">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
-    <input type="hidden" name="category_id" value="' . $category_id . '"/>
+    <input type="hidden" name="question_id" value="' . $question_id . '"/>
     <input type="hidden" name="email" value="' . $email . '"/>
     <input type="hidden" name="hostname" value="' . $hostname . '"/>
     <input type="hidden" name="port" value="' . $port . '"/>
@@ -150,13 +150,13 @@ if ($category_id) {
         </td>
       </tr>';
 
-    foreach ($questions as $question) {
+    foreach ($answers as $answer) {
         echo '
       <tr>
         <td class="cell">
-          <input type="checkbox" name="questions[]"  value="' . $question->id . '"/>
+          <input type="checkbox" name="answers[]"  value="' . $answer->id . '"/>
         </td>
-        <td class="cell">' . $question->name . '</td>
+        <td class="cell">' . $answer->answer . '</td>
       </tr>';
     }
 
@@ -166,8 +166,8 @@ echo '
   </form></td>';
 
 echo '<td>
-  <h2>'.get_string('tqg_questions', 'block_tqg_plugin').'</h2>
-  <form action="questions.php">
+  <h2>'.get_string('tqg_answers', 'block_tqg_plugin').'</h2>
+  <form action="answers.php">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
     <input type="hidden" name="email" value="' . $email . '"/>
     <input type="hidden" name="hostname" value="' . $hostname . '"/>
@@ -185,7 +185,7 @@ echo '<td>
 
 $token = $DB->get_record('tqg_login', array('user_email' => $email));
 
-if($token && $category_id) {
+if($token && $question_id) {
     $options = array(
         'http' => array(
             'method' => 'GET',
@@ -196,16 +196,16 @@ if($token && $category_id) {
     );
 
     $context = stream_context_create($options);
-    $result = file_get_contents('http://host.docker.internal:' . $port . '/api/categories/?moodle_id='.$category_id, false, $context);
+    $result = file_get_contents('http://host.docker.internal:' . $port . '/api/questions/?moodle_id='.$question_id, false, $context);
     $response = json_decode($result);
 
-    foreach ($response->data->questions as $question) {
+    foreach ($response->data->answers as $answer) {
         echo '
       <tr>
         <td class="cell">
-          <input type="checkbox" name="questions[]" value="' . $question->id . '"/>
+          <input type="checkbox" name="questions[]" value="' . $answer->id . '"/>
         </td>
-        <td class="cell">' . $question->name . '</td>
+        <td class="cell">' . $answer->answer . '</td>
       </tr>';
     }
 }

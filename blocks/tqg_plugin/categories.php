@@ -33,6 +33,8 @@ if (optional_param('export', 0, PARAM_BOOL)) {
     $categories_id = required_param_array('categories', PARAM_INT);
 
     $categories = array();
+    $questions = array();
+    $answers = array();
     foreach ($categories_id as $category_id)
     {
         $category = $DB->get_record('question_categories', array('id' => $category_id));
@@ -46,6 +48,38 @@ if (optional_param('export', 0, PARAM_BOOL)) {
             $category_aux['category_moodle_id'] = $category->parent;
         }
         $categories[] = $category_aux;
+
+        $questions_records = $DB->get_records('question', array('category' => $category->id));
+        foreach ($questions_records as $question)
+        {
+            $question_aux = array();
+            $question_aux['moodle_id'] = $question->id;
+            $question_aux['category_moodle_id'] = $question->category;
+            $question_aux['type'] = $question->qtype;
+            $question_aux['name'] = $question->name;
+            $question_aux['questiontext'] = $question->questiontext;
+            $question_aux['questiontext_format'] = $question->questiontextformat;
+            $question_aux['generalfeedback'] = $question->generalfeedback;
+            $question_aux['generalfeedback_format'] = $question->generalfeedbackformat;
+            $question_aux['penalty'] = $question->penalty;
+            $question_aux['hidden'] = $question->hidden;
+            $question_aux['idnumber'] = $question->idnumber;
+            $questions[] = $question_aux;
+
+            $answers_records = $DB->get_records('question_answers', array('question' => $question->id));
+            foreach ($answers_records as $answer)
+            {
+                $answer_aux = array();
+                $answer_aux['moodle_id'] = $answer->id;
+                $answer_aux['question_moodle_id'] = $answer->question;
+                $answer_aux['text'] = $answer->answer;
+                $answer_aux['format'] = $answer->answerformat;
+                $answer_aux['fraction'] = $answer->fraction;
+                $answer_aux['feedback'] = $answer->feedback;
+                $answer_aux['feedback_format'] = $answer->feedbackformat;
+                $answers[] = $answer_aux;
+            }
+        }
     }
 
     $token = $DB->get_record('tqg_login', array('user_email' => $email));
@@ -63,6 +97,48 @@ if (optional_param('export', 0, PARAM_BOOL)) {
 
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/categories', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $questions ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/questions', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $questions ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/questions', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $answers ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/answers', false, $context );
         $response = json_decode( $result );
     }
 
