@@ -14,7 +14,6 @@ $email = required_param('email', PARAM_TEXT);
 $hostname = required_param('hostname', PARAM_TEXT);
 $port = required_param('port', PARAM_INT);
 $course = $DB->get_record('course', array('id' => $course_id), '*', MUST_EXIST);
-$question_id = optional_param('question_id', null, PARAM_INT);
 $context = \context_course::instance($course->id);
 
 require_capability('mod/quiz:manage', $context);
@@ -28,21 +27,46 @@ $PAGE->navbar->add(get_string('questions', 'block_tqg_plugin'));
 $PAGE->requires->js('/blocks/tqg_plugin/js/tqg_utilities.js');
 
 if (optional_param('export', 0, PARAM_BOOL)) {
-    $answers_id = required_param_array('answers', PARAM_INT);
+    $students_id = required_param_array('students', PARAM_INT);
 
-    $answers = array();
-    foreach ($answers_id as $answer_id)
+    $students = array();
+    $student_grades_aux = array();
+    foreach ($students_id as $student_id)
     {
-        $answer = $DB->get_record('question_answers', array('id' => $answer_id));
-        $answer_aux = array();
-        $answer_aux['moodle_id'] = $answer->id;
-        $answer_aux['question_moodle_id'] = $answer->question;
-        $answer_aux['text'] = $answer->answer;
-        $answer_aux['format'] = $answer->answerformat;
-        $answer_aux['fraction'] = $answer->fraction;
-        $answer_aux['feedback'] = $answer->feedback;
-        $answer_aux['feedback_format'] = $answer->feedbackformat;
-        $answers[] = $answer_aux;
+        $student = $DB->get_record('user', array('id' => $student_id));
+        $student_aux = array();
+        $student_aux['moodle_id'] = $student->id;
+        $student_aux['username'] = $student->username;
+        $student_aux['email'] = $student->email;
+        $student_aux['firstname'] = $student->firstname;
+        $student_aux['lastname'] = $student->lastname;
+        $student_aux['idnumber'] = $student->idnumber;
+        $student_aux['institution'] = $student->institution;
+        $student_aux['department'] = $student->department;
+        $student_aux['phone1'] = $student->phone1;
+        $student_aux['phone2'] = $student->phone2;
+        $student_aux['city'] = $student->city;
+        $student_aux['url'] = $student->url;
+        $student_aux['icq'] = $student->icq;
+        $student_aux['skype'] = $student->skype;
+        $student_aux['aim'] = $student->aim;
+        $student_aux['yahoo'] = $student->yahoo;
+        $student_aux['msn'] = $student->msn;
+        $student_aux['country'] = $student->country;
+        $students[] = $student_aux;
+
+        $student_grades = $DB->get_records_sql('SELECT qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
+                                                  FROM {question_attempts} qa
+                                                  INNER JOIN {question_attempt_steps} qas
+                                                  ON qas.questionattemptid = qa.id AND qas.userid = '.$student->id);
+        foreach($student_grades as $student_grade)
+        {
+            $student_grade_aux = array();
+            $student_grade_aux['student_moodle_id'] = $student_grade->userid;
+            $student_grade_aux['question_moodle_id'] = $student_grade->questionid;
+            $student_grade_aux['grade'] = $student_grade->grade;
+            $student_grades_aux[] = $student_grade_aux;
+        }
     }
 
     $token = $DB->get_record('tqg_login', array('user_email' => $email));
@@ -51,7 +75,7 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         $options = array(
             'http' => array(
                 'method'  => 'POST',
-                'content' => json_encode( $answers ),
+                'content' => json_encode( $students ),
                 'header'=>  "Content-Type: application/json\r\n" .
                     "Accept: application/json\r\n" .
                     "Authorization: Bearer ". $token->user_token ."\r\n"
@@ -59,8 +83,26 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         );
 
         $context  = stream_context_create( $options );
-        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/answers', false, $context );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/students', false, $context );
         $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $student_grades_aux ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        var_dump(json_encode( $student_grades_aux ));
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/student_grades', false, $context );
+        $response = json_decode( $result );
+
+        var_dump($response);
     }
 
 } else if (optional_param('import', 0, PARAM_BOOL)) {
@@ -87,55 +129,18 @@ if (optional_param('export', 0, PARAM_BOOL)) {
 
 echo $OUTPUT->header();
 
-
-$contexts = new question_edit_contexts(context_course::instance($COURSE->id));
-//         $mform->addElement('selectgroups', 'questioncategory', get_string('questioncategory', 'ucat'),
-//                 question_category_options($contexts->having_cap('moodle/question:add')));
-$opts = question_category_options($contexts->having_cap('moodle/question:add'));
-
-$questions = array();
-foreach ($opts as $optgroup) {
-    foreach ($optgroup as $id => $category) {
-        $id = intval($id);
-        $questions = array_merge($DB->get_records_select('question',
-            'category = '. $id .' AND (qtype="multichoice" OR qtype="truefalse")'
-        ), $questions);
-    }
-}
-
-
-echo '<form action="answers.php">
-    <input type="hidden" name="course_id" value="' . $course_id . '"/>
-    <input type="hidden" name="email" value="' . $email . '"/>
-    <input type="hidden" name="hostname" value="' . $hostname . '"/>
-    <input type="hidden" name="port" value="' . $port . '"/>
-    <select name="question_id" onchange="this.form.submit()">
-      <option value="0">' . get_string('select') . '</option>';
-foreach ($questions as $question) {
-    if ($question->id == $question_id) {
-        $selected = ' selected="selected"';
-    } else {
-        $selected = '';
-    }
-    echo '<option value="' . $question->id . '"' . $selected . '>' . $question->name . '</option>';
-}
-echo '
-    </select>
-  </form>';
-
 echo '
   <table><tr><td>
-  <h2>'.get_string('moodle_answers', 'block_tqg_plugin').'</h2>';
+  <h2>'.get_string('moodle_students', 'block_tqg_plugin').'</h2>';
 
-$answers = array();
-if ($question_id) {
-    $answers = $DB->get_records('question_answers', ['question' => $question_id]);
-}
+$students = $DB->get_records_sql('SELECT u.id, u.firstname, u.lastname FROM {user} u
+                                    LEFT JOIN {user_enrolments} ue ON ue.userid = u.id
+                                    LEFT JOIN {enrol} e ON e.courseid = '. $course_id .' AND e.id = ue.id
+                                    WHERE u.id = ue.userid');
 
     echo '
-  <form action="questions.php" method="post">
+  <form action="students.php" method="post">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
-    <input type="hidden" name="question_id" value="' . $question_id . '"/>
     <input type="hidden" name="email" value="' . $email . '"/>
     <input type="hidden" name="hostname" value="' . $hostname . '"/>
     <input type="hidden" name="port" value="' . $port . '"/>
@@ -150,13 +155,13 @@ if ($question_id) {
         </td>
       </tr>';
 
-    foreach ($answers as $answer) {
+    foreach ($students as $student) {
         echo '
       <tr>
         <td class="cell">
-          <input type="checkbox" name="answers[]"  value="' . $answer->id . '"/>
+          <input type="checkbox" name="students[]"  value="' . $student->id . '"/>
         </td>
-        <td class="cell">' . $answer->answer . '</td>
+        <td class="cell">' . $student->firstname . ' ' . $student->lastname . '</td>
       </tr>';
     }
 
@@ -166,8 +171,8 @@ echo '
   </form></td>';
 
 echo '<td>
-  <h2>'.get_string('tqg_answers', 'block_tqg_plugin').'</h2>
-  <form action="answers.php">
+  <h2>'.get_string('tqg_students', 'block_tqg_plugin').'</h2>
+  <form action="students.php">
     <input type="hidden" name="course_id" value="' . $course_id . '"/>
     <input type="hidden" name="email" value="' . $email . '"/>
     <input type="hidden" name="hostname" value="' . $hostname . '"/>
@@ -185,7 +190,7 @@ echo '<td>
 
 $token = $DB->get_record('tqg_login', array('user_email' => $email));
 
-if($token && $question_id) {
+if($token) {
     $options = array(
         'http' => array(
             'method' => 'GET',
@@ -196,16 +201,16 @@ if($token && $question_id) {
     );
 
     $context = stream_context_create($options);
-    $result = file_get_contents('http://host.docker.internal:' . $port . '/api/questions/?moodle_id='.$question_id, false, $context);
+    $result = file_get_contents('http://host.docker.internal:' . $port . '/api/students', false, $context);
     $response = json_decode($result);
 
-    foreach ($response->data->answers as $answer) {
+    foreach ($response->data as $student) {
         echo '
       <tr>
         <td class="cell">
-          <input type="checkbox" name="questions[]" value="' . $answer->id . '"/>
+          <input type="checkbox" name="questions[]" value="' . $student->id . '"/>
         </td>
-        <td class="cell">' . $answer->text . '</td>
+        <td class="cell">' . $student->firstname . ' ' . $student->lastname . '</td>
       </tr>';
     }
 }

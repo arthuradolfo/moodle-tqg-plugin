@@ -33,6 +33,13 @@ class block_tqg_plugin extends block_base {
                         'port' => $this->config->port)),
                     get_string('categories', 'block_tqg_plugin')) . '<br/>';
 
+            $this->content->text .= $OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/students.php',
+                    array('course_id' => $COURSE->id,
+                        'email' => $this->config->email,
+                        'hostname' => $this->config->hostname,
+                        'port' => $this->config->port)),
+                    get_string('students', 'block_tqg_plugin')) . '<br/>';
+
             $this->content->text .= $OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/answers.php',
                     array('course_id' => $COURSE->id,
                         'email' => $this->config->email,
@@ -84,22 +91,7 @@ class block_tqg_plugin extends block_base {
                                     'port' => $this->config->port,
                                     'email' => $this->config->email,
                                     'username' => $this->config->user,
-                                    'password' => $this->config->password,
-                                    'firstname' => $USER->firstname,
-                                    'lastname' => $USER->lastname,
-                                    'idnumber' => $USER->idnumber,
-                                    'institution' => $USER->institution,
-                                    'department' => $USER->department,
-                                    'phone1' => $USER->phone1,
-                                    'phone2' => $USER->phone2,
-                                    'city' => $USER->city,
-                                    'url' => $USER->url,
-                                    'icq' => $USER->icq,
-                                    'skype' => $USER->skype,
-                                    'aim' => $USER->aim,
-                                    'yahoo' => $USER->yahoo,
-                                    'msn' => $USER->msn,
-                                    'country' => $USER->country))) . '<br/>';
+                                    'password' => $this->config->password))) . '<br/>';
 
                     $this->content->text .= $OUTPUT->action_link(new moodle_url('#'),
                             get_string('login', 'block_tqg_plugin'),

@@ -75,7 +75,14 @@ if (optional_param('export', 0, PARAM_BOOL)) {
                 $answer_aux['text'] = $answer->answer;
                 $answer_aux['format'] = $answer->answerformat;
                 $answer_aux['fraction'] = $answer->fraction;
-                $answer_aux['feedback'] = $answer->feedback;
+                if(strlen($answer->feedback) >= 21477)
+                {
+                    $answer_aux['feedback'] = "";
+                }
+                else
+                {
+                    $answer_aux['feedback'] = $answer->feedback;
+                }
                 $answer_aux['feedback_format'] = $answer->feedbackformat;
                 $answers[] = $answer_aux;
             }
@@ -116,27 +123,12 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         $options = array(
             'http' => array(
                 'method'  => 'POST',
-                'content' => json_encode( $questions ),
-                'header'=>  "Content-Type: application/json\r\n" .
-                    "Accept: application/json\r\n" .
-                    "Authorization: Bearer ". $token->user_token ."\r\n"
-            )
-        );
-
-        $context  = stream_context_create( $options );
-        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/questions', false, $context );
-        $response = json_decode( $result );
-
-        $options = array(
-            'http' => array(
-                'method'  => 'POST',
                 'content' => json_encode( $answers ),
                 'header'=>  "Content-Type: application/json\r\n" .
                     "Accept: application/json\r\n" .
                     "Authorization: Bearer ". $token->user_token ."\r\n"
             )
         );
-
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/answers', false, $context );
         $response = json_decode( $result );

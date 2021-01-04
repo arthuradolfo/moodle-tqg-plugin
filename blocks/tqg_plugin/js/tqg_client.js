@@ -148,22 +148,7 @@ function block_tqg_plugin_register_user(e, args) {
         data: {'email' : args.email,
             'username': args.username,
             'password': args.password,
-            'password_confirmation': args.password,
-            'firstname': args.firstname,
-            'lastname': args.lastname,
-            'idnumber': args.idnumber,
-            'institution': args.institution,
-            'department': args.department,
-            'phone1': args.phone1,
-            'phone2': args.phone2,
-            'city': args.city,
-            'url': args.url,
-            'icq': args.icq,
-            'skype': args.skype,
-            'aim': args.aim,
-            'yahoo': args.yahoo,
-            'msn': args.msn,
-            'country': args.country},
+            'password_confirmation': args.password},
         on: {
             success: function (o, response) {
                 //OK
