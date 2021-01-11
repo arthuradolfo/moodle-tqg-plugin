@@ -7,7 +7,9 @@
         <TABLE NAME="tqg_login" COMMENT="TQG login">
             <FIELDS>
                 <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true" NEXT="user_email"/>
-                <FIELD NAME="user_email" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="id" NEXT="user_token"/>
+                <FIELD NAME="course" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="id" NEXT="host"/>
+                <FIELD NAME="port" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" PREVIOUS="course" NEXT="user_email"/>
+                <FIELD NAME="user_email" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false" PREVIOUS="course" NEXT="user_token"/>
                 <FIELD NAME="user_token" TYPE="text" NOTNULL="true" SEQUENCE="false" PREVIOUS="user_email" NEXT="intro"/>
             </FIELDS>
             <KEYS>

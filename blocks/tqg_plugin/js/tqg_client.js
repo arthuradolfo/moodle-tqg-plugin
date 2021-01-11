@@ -15,7 +15,7 @@ function block_tqg_plugin_refresh_token(e, args) {
                 if (data.token) {
                     Y.io(M.cfg.wwwroot + '/blocks/tqg_plugin/actions/save_token.php',
                         { method: 'POST',
-                          data: {'email': args.email, 'token': data.token},
+                          data: {'course' : args.course, 'port' : args.port, 'email': args.email, 'token': data.token},
                           on: {
                             success: function (o, response) {
                                 alert('Login successfully!');
@@ -111,7 +111,7 @@ function block_tqg_plugin_update_password(e, args) {
                 if (data.token) {
                     Y.io(M.cfg.wwwroot + '/blocks/tqg_plugin/actions/save_token.php',
                         { method: 'POST',
-                            data: {'email': args.email, 'token': data.token},
+                            data: {'course' : args.course, 'port' : args.port, 'email': args.email, 'token': data.token},
                             on: {
                                 success: function (o, response) {
                                     alert('Password changed.');

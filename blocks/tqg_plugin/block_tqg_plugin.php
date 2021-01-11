@@ -71,6 +71,7 @@ class block_tqg_plugin extends block_base {
                             new component_action('click', 'block_tqg_plugin_refresh_token',
                                 array('hostname' => $this->config->hostname,
                                     'port' => $this->config->port,
+                                    'course' => $COURSE->id,
                                     'email' => $this->config->email,
                                     'username' => $this->config->user,
                                     'password' => $this->config->password))) . '<br/>';
@@ -80,6 +81,7 @@ class block_tqg_plugin extends block_base {
                             new component_action('click', 'block_tqg_plugin_update_password',
                                 array('hostname' => $this->config->hostname,
                                     'port' => $this->config->port,
+                                    'course' => $COURSE->id,
                                     'token' => $token->user_token,
                                     'password' => $this->config->password))) . '<br/>';
                 }
@@ -89,6 +91,7 @@ class block_tqg_plugin extends block_base {
                             new component_action('click', 'block_tqg_plugin_register_user',
                                 array('hostname' => $this->config->hostname,
                                     'port' => $this->config->port,
+                                    'course' => $COURSE->id,
                                     'email' => $this->config->email,
                                     'username' => $this->config->user,
                                     'password' => $this->config->password))) . '<br/>';
@@ -98,6 +101,7 @@ class block_tqg_plugin extends block_base {
                             new component_action('click', 'block_tqg_plugin_refresh_token',
                                 array('hostname' => $this->config->hostname,
                                     'port' => $this->config->port,
+                                    'course' => $COURSE->id,
                                     'email' => $this->config->email,
                                     'username' => $this->config->user,
                                     'password' => $this->config->password))) . '<br/>';
