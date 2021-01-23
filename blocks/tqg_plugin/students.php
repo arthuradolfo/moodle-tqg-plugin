@@ -82,6 +82,7 @@ if (optional_param('export', 0, PARAM_BOOL)) {
             )
         );
 
+        var_dump(json_encode( $students ));
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/students', false, $context );
         $response = json_decode( $result );
@@ -95,8 +96,6 @@ if (optional_param('export', 0, PARAM_BOOL)) {
                     "Authorization: Bearer ". $token->user_token ."\r\n"
             )
         );
-
-        var_dump(json_encode( $student_grades_aux ));
 
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/student_grades', false, $context );

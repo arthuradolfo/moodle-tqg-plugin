@@ -35,6 +35,8 @@ if (optional_param('export', 0, PARAM_BOOL)) {
     $categories = array();
     $questions = array();
     $answers = array();
+    $students = array();
+    $student_grades_aux = array();
     foreach ($categories_id as $category_id)
     {
         $category = $DB->get_record('question_categories', array('id' => $category_id));
@@ -49,7 +51,9 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         }
         $categories[] = $category_aux;
 
-        $questions_records = $DB->get_records('question', array('category' => $category->id));
+        $questions_records = $DB->get_records_select('question',
+            'category = '. $category->id .' AND (qtype="multichoice" OR qtype="truefalse")'
+        );
         foreach ($questions_records as $question)
         {
             $question_aux = array();
@@ -85,6 +89,48 @@ if (optional_param('export', 0, PARAM_BOOL)) {
                 }
                 $answer_aux['feedback_format'] = $answer->feedbackformat;
                 $answers[] = $answer_aux;
+            }
+
+            $students = $DB->get_records_sql('SELECT u.id, u.firstname, u.lastname FROM {user} u
+                                    LEFT JOIN {user_enrolments} ue ON ue.userid = u.id
+                                    LEFT JOIN {enrol} e ON e.courseid = '. $course_id .' AND e.id = ue.id
+                                    WHERE u.id = ue.userid');
+
+            foreach ($students as $student)
+            {
+                $student_aux = array();
+                $student_aux['moodle_id'] = $student->id;
+                $student_aux['username'] = $student->username;
+                $student_aux['email'] = $student->email;
+                $student_aux['firstname'] = $student->firstname;
+                $student_aux['lastname'] = $student->lastname;
+                $student_aux['idnumber'] = $student->idnumber;
+                $student_aux['institution'] = $student->institution;
+                $student_aux['department'] = $student->department;
+                $student_aux['phone1'] = $student->phone1;
+                $student_aux['phone2'] = $student->phone2;
+                $student_aux['city'] = $student->city;
+                $student_aux['url'] = $student->url;
+                $student_aux['icq'] = $student->icq;
+                $student_aux['skype'] = $student->skype;
+                $student_aux['aim'] = $student->aim;
+                $student_aux['yahoo'] = $student->yahoo;
+                $student_aux['msn'] = $student->msn;
+                $student_aux['country'] = $student->country;
+                $students[] = $student_aux;
+            }
+
+            $student_grades = $DB->get_records_sql('SELECT qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
+                                                  FROM {question_attempts} qa
+                                                  INNER JOIN {question_attempt_steps} qas
+                                                  ON qas.questionattemptid = qa.id AND qa.questionid = '.$question->id);
+            foreach($student_grades as $student_grade)
+            {
+                $student_grade_aux = array();
+                $student_grade_aux['student_moodle_id'] = $student_grade->userid;
+                $student_grade_aux['question_moodle_id'] = $student_grade->questionid;
+                $student_grade_aux['grade'] = $student_grade->grade;
+                $student_grades_aux[] = $student_grade_aux;
             }
         }
     }
@@ -131,6 +177,34 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         );
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/answers', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $students ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/students', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $student_grades_aux ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/student_grades', false, $context );
         $response = json_decode( $result );
     }
 

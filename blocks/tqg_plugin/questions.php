@@ -31,6 +31,8 @@ if (optional_param('export', 0, PARAM_BOOL)) {
     $questions_id = required_param_array('questions', PARAM_INT);
 
     $questions = array();
+    $answers = array();
+    $student_grades_aux = array();
     foreach ($questions_id as $question_id)
     {
         $question = $DB->get_record('question', array('id' => $question_id));
@@ -48,6 +50,40 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         $question_aux['hidden'] = $question->hidden;
         $question_aux['idnumber'] = $question->idnumber;
         $questions[] = $question_aux;
+
+        $answers_records = $DB->get_records('question_answers', array('question' => $question->id));
+        foreach ($answers_records as $answer)
+        {
+            $answer_aux = array();
+            $answer_aux['moodle_id'] = $answer->id;
+            $answer_aux['question_moodle_id'] = $answer->question;
+            $answer_aux['text'] = $answer->answer;
+            $answer_aux['format'] = $answer->answerformat;
+            $answer_aux['fraction'] = $answer->fraction;
+            if(strlen($answer->feedback) >= 21477)
+            {
+                $answer_aux['feedback'] = "";
+            }
+            else
+            {
+                $answer_aux['feedback'] = $answer->feedback;
+            }
+            $answer_aux['feedback_format'] = $answer->feedbackformat;
+            $answers[] = $answer_aux;
+        }
+
+        $student_grades = $DB->get_records_sql('SELECT qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
+                                                  FROM {question_attempts} qa
+                                                  INNER JOIN {question_attempt_steps} qas
+                                                  ON qas.questionattemptid = qa.id AND qa.questionid = '.$question->id);
+        foreach($student_grades as $student_grade)
+        {
+            $student_grade_aux = array();
+            $student_grade_aux['student_moodle_id'] = $student_grade->userid;
+            $student_grade_aux['question_moodle_id'] = $student_grade->questionid;
+            $student_grade_aux['grade'] = $student_grade->grade;
+            $student_grades_aux[] = $student_grade_aux;
+        }
     }
 
     $token = $DB->get_record('tqg_login', array('user_email' => $email));
@@ -67,6 +103,33 @@ if (optional_param('export', 0, PARAM_BOOL)) {
 
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/questions', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $answers ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/answers', false, $context );
+        $response = json_decode( $result );
+
+        $options = array(
+            'http' => array(
+                'method'  => 'POST',
+                'content' => json_encode( $student_grades_aux ),
+                'header'=>  "Content-Type: application/json\r\n" .
+                    "Accept: application/json\r\n" .
+                    "Authorization: Bearer ". $token->user_token ."\r\n"
+            )
+        );
+
+        $context  = stream_context_create( $options );
+        $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/student_grades', false, $context );
         $response = json_decode( $result );
     }
 

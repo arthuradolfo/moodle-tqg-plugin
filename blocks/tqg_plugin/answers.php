@@ -40,7 +40,14 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         $answer_aux['text'] = $answer->answer;
         $answer_aux['format'] = $answer->answerformat;
         $answer_aux['fraction'] = $answer->fraction;
-        $answer_aux['feedback'] = $answer->feedback;
+        if(strlen($answer->feedback) >= 21477)
+        {
+            $answer_aux['feedback'] = "";
+        }
+        else
+        {
+            $answer_aux['feedback'] = $answer->feedback;
+        }
         $answer_aux['feedback_format'] = $answer->feedbackformat;
         $answers[] = $answer_aux;
     }

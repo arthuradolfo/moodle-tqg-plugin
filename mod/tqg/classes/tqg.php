@@ -64,7 +64,7 @@ class tqg
         $session->questions = '';
         $session->number_questions = $this->__get("questions");
 
-        $session->student_moodle_id = 945319654;
+        $session->student_moodle_id = $USER->id;
 
         $quba = question_engine::make_questions_usage_by_activity('mod_tqg', $this->context);
         $quba->set_preferred_behaviour(self::PREFERRED_BEHAVIOR);
@@ -74,7 +74,6 @@ class tqg
         $session->category_moodle_id = intval($this->__get("questioncategory"));
 
         if ($this->token) {
-            var_dump(json_encode($session));
             $options = array(
                 'http' => array(
                     'method' => 'POST',
