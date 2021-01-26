@@ -83,6 +83,7 @@ class tqg
                         "Authorization: Bearer " . $this->token . "\r\n"
                 )
             );
+            var_dump(json_encode($session));
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/sessions', false, $context);
             var_dump($result);

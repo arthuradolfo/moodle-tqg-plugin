@@ -72,6 +72,7 @@ class tqg_session {
                         "Authorization: Bearer " . $this->token . "\r\n"
                 )
             );
+            var_dump(json_encode($this->session));
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/sessions/'.$this->session->id, false, $context);
             return json_decode($result);
@@ -104,6 +105,7 @@ class tqg_session {
 
             $this->session->questions = implode(",", $this->questions);
             $this->session->current_question = $response->data->moodle_id;
+            $this->session->status = self::STATUS_ASKED;
             $this->update();
             $this->current_question = $response->data->moodle_id;
 
@@ -115,7 +117,6 @@ class tqg_session {
             question_engine::save_questions_usage_by_activity($quba);
 
             $this->session->slot = $slot;
-            $this->session->status = self::STATUS_ASKED;
             $this->update();
 
             return $response;
@@ -166,18 +167,42 @@ class tqg_session {
         $quba->process_action($slot,$submitteddata);
         $quba->finish_question($slot);
 
+        $attempt = $quba->get_question_attempt($slot);
+        var_dump($attempt->get_mark());
+
+        $this->session->last_response = ($attempt->get_mark() > 0.7) ? 1 : 0;
+
         question_engine::save_questions_usage_by_activity($quba);
 
         if ($this->session->status == self::STATUS_ASKED) {
             $this->session->status = self::STATUS_ANSWERED;
-            $this->update();;
+            $this->update();
         }
+    }
+
+    protected function calculate_model()
+    {
+        if ($this->token) {
+            $options = array(
+                'http' => array(
+                    'method' => 'GET',
+                    'header' => "Content-Type: application/json\r\n" .
+                        "Accept: application/json\r\n" .
+                        "Authorization: Bearer " . $this->token . "\r\n"
+                )
+            );
+            $context = stream_context_create($options);
+            $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/calculate_model/', false, $context);
+            var_dump($result);
+        }
+        return "";
     }
 
     public function finish() {
         $this->session->time_finished = date("Y-m-d H:m:s", time());
         $this->session->status = self::STATUS_FINISHED;
         $this->update();
+        $this->calculate_model();
     }
 
     /**
