@@ -26,6 +26,13 @@ class block_tqg_plugin extends block_base {
                         'port' => $this->config->port)),
                     get_string('questions', 'block_tqg_plugin')) . '<br/>';
 
+            $this->content->text .= $OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/questions_difficulties.php',
+                    array('course_id' => $COURSE->id,
+                        'email' => $this->config->email,
+                        'hostname' => $this->config->hostname,
+                        'port' => $this->config->port)),
+                    get_string('questions_difficulties', 'block_tqg_plugin')) . '<br/>';
+
             $this->content->text .= $OUTPUT->action_link(new moodle_url('/blocks/tqg_plugin/categories.php',
                     array('course_id' => $COURSE->id,
                         'email' => $this->config->email,

@@ -177,6 +177,7 @@ class tqg_session {
         if ($this->session->status == self::STATUS_ASKED) {
             $this->session->status = self::STATUS_ANSWERED;
             $this->update();
+            $this->calculate_model();
         }
     }
 
@@ -192,7 +193,7 @@ class tqg_session {
                 )
             );
             $context = stream_context_create($options);
-            $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/calculate_model/', false, $context);
+            $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/calculate_model/'.$this->session->id, false, $context);
             var_dump($result);
         }
         return "";
