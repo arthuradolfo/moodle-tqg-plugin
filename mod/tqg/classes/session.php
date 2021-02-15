@@ -16,6 +16,7 @@ class tqg_session {
     private $token;
     private $tqg;
     private $cm;
+    private $user;
 
     /**
      *
@@ -41,6 +42,11 @@ class tqg_session {
             $result = file_get_contents( 'http://host.docker.internal:'.$this->port.'/api/sessions/'.$session_id, false, $context );
             $response = json_decode( $result );
             $this->session = $response->data;
+
+            $context  = stream_context_create( $options );
+            $result = file_get_contents( 'http://host.docker.internal:'.$this->port.'/api/user', false, $context );
+            $response = json_decode( $result );
+            $this->user = $response;
 
             $this->id = $this->session->id;
             $this->questions_usage = $this->session->questions_usage;
@@ -72,7 +78,6 @@ class tqg_session {
                         "Authorization: Bearer " . $this->token . "\r\n"
                 )
             );
-            var_dump(json_encode($this->session));
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/sessions/'.$this->session->id, false, $context);
             return json_decode($result);
@@ -168,9 +173,7 @@ class tqg_session {
         $quba->finish_question($slot);
 
         $attempt = $quba->get_question_attempt($slot);
-        var_dump($attempt->get_mark());
-
-        $this->session->last_response = ($attempt->get_mark() > 0.7) ? 1 : 0;
+        $this->session->last_response = ($attempt->get_mark() > $this->user->threshold) ? 1 : 0;
 
         question_engine::save_questions_usage_by_activity($quba);
 
@@ -213,4 +216,22 @@ class tqg_session {
     {
         return !is_null($this->session->slot) && $this->session->slot >= $this->tqg->__get("questions");
     }
+
+
+    /**
+     *
+     * @return string
+     */
+    public function render_report() {
+        $quba = question_engine::load_questions_usage_by_activity($this->questions_usage);
+        $slots = $quba->get_slots();
+        $table = new html_table();
+        $table->head = array(get_string('questionname', 'tqg'), get_string('result', 'tqg'));
+        foreach ($slots as $slot) {
+            $at = $quba->get_question_attempt($slot);
+            $table->data[] = array($at->get_question()->name, ($at->get_mark() > 0.7) ? 'correct' : 'wrong');
+        }
+        return html_writer::table($table);
+    }
+
 }

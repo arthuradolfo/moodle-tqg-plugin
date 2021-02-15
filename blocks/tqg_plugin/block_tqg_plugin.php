@@ -59,7 +59,8 @@ class block_tqg_plugin extends block_base {
                 $this->content->text .= get_string('host_info', 'block_tqg_plugin') . $this->config->hostname . '<br/>'
                     .get_string('port_info', 'block_tqg_plugin') . $this->config->port . '<br/>'
                     .get_string('user_info', 'block_tqg_plugin') . $this->config->user . '<br/>'
-                    .get_string('email_info', 'block_tqg_plugin') . $this->config->email . '<br/>';
+                    .get_string('email_info', 'block_tqg_plugin') . $this->config->email . '<br/>'
+                    .get_string('threshold_info', 'block_tqg_plugin') . $this->config->threshold . '<br/>';
 
                 $token = $DB->get_record('tqg_login', array('user_email' => $this->config->email));
                 if ($token) {
@@ -101,7 +102,8 @@ class block_tqg_plugin extends block_base {
                                     'course' => $COURSE->id,
                                     'email' => $this->config->email,
                                     'username' => $this->config->user,
-                                    'password' => $this->config->password))) . '<br/>';
+                                    'password' => $this->config->password,
+                                    'threshold' => $this->config->threshold))) . '<br/>';
 
                     $this->content->text .= $OUTPUT->action_link(new moodle_url('#'),
                             get_string('login', 'block_tqg_plugin'),

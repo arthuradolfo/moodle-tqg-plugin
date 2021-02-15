@@ -72,10 +72,11 @@ if (optional_param('export', 0, PARAM_BOOL)) {
             $answers[] = $answer_aux;
         }
 
-        $student_grades = $DB->get_records_sql('SELECT qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
+        $student_grades = $DB->get_records_sql('SELECT qas.id, qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
                                                   FROM {question_attempts} qa
                                                   INNER JOIN {question_attempt_steps} qas
-                                                  ON qas.questionattemptid = qa.id AND qa.questionid = '.$question->id);
+                                                  ON qas.questionattemptid = qa.id AND qa.questionid = '.$question->id
+                                                    .' WHERE qa.maxmark*qas.fraction IS NOT NULL');
         foreach($student_grades as $student_grade)
         {
             $student_grade_aux = array();

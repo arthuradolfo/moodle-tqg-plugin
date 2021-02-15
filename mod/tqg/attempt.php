@@ -9,7 +9,6 @@ $tqg = new tqg($cm);
 require_login($cm->course, true, $cm);
 
 if ($sid = optional_param('session', null, PARAM_TEXT)) {
-    var_dump($sid);
     $session = new tqg_session($sid, $tqg->token, $tqg->port);
 } else {
     $session_record = $tqg->create_session($cm->instance);
@@ -26,22 +25,20 @@ echo $OUTPUT->header();
 echo $OUTPUT->heading($cm->name);
 
 if ($session->check_ending_condition()) {
-    var_dump("The end");
     $session->process_session();
     $session->finish();
 }
 
 if ($session->session->status >= tqg_session::STATUS_FINISHED) {
-    echo "The end.";
+    echo $session->render_report();
+    echo "<br>".get_string('form_link_description', 'tqg')."<a href='https://docs.google.com/forms/d/e/1FAIpQLSfvqY8GkdnXZUS6fGOP3EoO6s2__qVhLKQrmd7PAAN9JK48Rg/viewform?usp=sf_link'>".get_string('form_link', 'tqg')."</a>";
 } else {
     if ($session->session->status == tqg_session::STATUS_ASKED) {
-        var_dump("The begining");
         if (optional_param('next', 0, PARAM_BOOL)) {
             $session->process_session();
         }
     }
     if ($session->session->status != tqg_session::STATUS_ASKED) {
-        var_dump("The new question");
         $question = $session->get_next_question();
 
         if (!$question)

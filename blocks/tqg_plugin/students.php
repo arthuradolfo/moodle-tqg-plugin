@@ -55,10 +55,11 @@ if (optional_param('export', 0, PARAM_BOOL)) {
         $student_aux['country'] = $student->country;
         $students[] = $student_aux;
 
-        $student_grades = $DB->get_records_sql('SELECT qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
+        $student_grades = $DB->get_records_sql('SELECT qas.id, qa.questionid, (qa.maxmark*qas.fraction) grade, qas.userid
                                                   FROM {question_attempts} qa
                                                   INNER JOIN {question_attempt_steps} qas
-                                                  ON qas.questionattemptid = qa.id AND qas.userid = '.$student->id);
+                                                  ON qas.questionattemptid = qa.id AND qas.userid = '.$student->id
+                                                .' WHERE qa.maxmark*qas.fraction IS NOT NULL');
         foreach($student_grades as $student_grade)
         {
             $student_grade_aux = array();
@@ -97,6 +98,7 @@ if (optional_param('export', 0, PARAM_BOOL)) {
             )
         );
 
+        var_dump(json_encode( $student_grades_aux ));
         $context  = stream_context_create( $options );
         $result = file_get_contents( 'http://host.docker.internal:'.$port.'/api/student_grades', false, $context );
         $response = json_decode( $result );

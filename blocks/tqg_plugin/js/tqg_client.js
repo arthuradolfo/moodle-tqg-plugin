@@ -148,7 +148,8 @@ function block_tqg_plugin_register_user(e, args) {
         data: {'email' : args.email,
             'username': args.username,
             'password': args.password,
-            'password_confirmation': args.password},
+            'password_confirmation': args.password,
+            'threshold': args.threshold},
         on: {
             success: function (o, response) {
                 //OK

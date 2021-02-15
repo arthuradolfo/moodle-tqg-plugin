@@ -20,6 +20,9 @@ class block_tqg_plugin_edit_form extends block_edit_form {
         $mform->addElement('text', 'config_password', get_string('password', 'block_tqg_plugin'));
         $mform->setDefault('config_password', 'password');
         $mform->setType('config_password', PARAM_RAW);
+        $mform->addElement('text', 'config_threshold', get_string('threshold', 'block_tqg_plugin'));
+        $mform->setDefault('config_threshold', '0.7');
+        $mform->setType('config_threshold', PARAM_FLOAT);
 
     }
 }
