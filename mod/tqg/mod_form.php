@@ -25,9 +25,6 @@ class mod_tqg_mod_form extends moodleform_mod {
         $f->addElement('text', 'questions', get_string('numquestions', 'tqg'), array('size' => 4));
         $f->setType('questions', PARAM_INT);
 
-        $f->addElement('text', 'threshold', get_string('threshold', 'tqg'), array('size' => 4));
-        $f->setType('threshold', PARAM_INT);
-
         $contexts = new question_edit_contexts(context_course::instance($COURSE->id));
         $f->addElement('selectgroups', 'questioncategory', get_string('questioncategory', 'tqg'),
             question_category_options($contexts->having_cap('moodle/question:add')));
