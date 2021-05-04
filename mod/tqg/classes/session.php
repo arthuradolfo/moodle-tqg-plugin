@@ -104,9 +104,9 @@ class tqg_session {
 
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/sessions/'. $this->session->id .'/get_next_question', false, $context);
-            if(empty($result))
+            if(!$result)
             {
-                $this->update();
+                $this->session->status = self::STATUS_FINISHED;
                 return NULL;
             }
             $response = json_decode($result);
