@@ -26,7 +26,7 @@ echo $OUTPUT->heading($cm->name);
 
 if ($session->session->status >= tqg_session::STATUS_FINISHED) {
     echo $session->render_report();
-    echo "<br>".get_string('form_link_description', 'tqg')."<a href='https://docs.google.com/forms/d/e/1FAIpQLSfvqY8GkdnXZUS6fGOP3EoO6s2__qVhLKQrmd7PAAN9JK48Rg/viewform?usp=sf_link'>".get_string('form_link', 'tqg')."</a>";
+    echo "<br>".get_string('form_link_description', 'tqg')."<a href='https://docs.google.com/forms/d/e/1FAIpQLSfvqY8GkdnXZUS6fGOP3EoO6s2__qVhLKQrmd7PAAN9JK48Rg/viewform?usp=sf_link' target='_blank'>".get_string('form_link', 'tqg')."</a>";
 } else {
     if ($session->session->status == tqg_session::STATUS_ASKED) {
         if (optional_param('next', 0, PARAM_BOOL)) {
