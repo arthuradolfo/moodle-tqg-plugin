@@ -80,7 +80,7 @@ class tqg_session {
             );
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/sessions/'.$this->session->id, false, $context);
-            return json_decode($result);
+            $this->session = json_decode($result);
         }
         return "";
     }
@@ -104,6 +104,11 @@ class tqg_session {
 
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/sessions/'. $this->session->id .'/get_next_question', false, $context);
+            if(!$result)
+            {
+                $this->session->status = self::STATUS_FINISHED;
+                return NULL;
+            }
             $response = json_decode($result);
 
             $this->questions[] = $response->data->moodle_id;
@@ -197,24 +202,8 @@ class tqg_session {
             );
             $context = stream_context_create($options);
             $result = file_get_contents('http://host.docker.internal:' . $this->port . '/api/calculate_model/'.$this->session->id, false, $context);
-            var_dump($result);
         }
         return "";
-    }
-
-    public function finish() {
-        $this->session->time_finished = date("Y-m-d H:m:s", time());
-        $this->session->status = self::STATUS_FINISHED;
-        $this->update();
-        $this->calculate_model();
-    }
-
-    /**
-     * @return bool
-     */
-    public function check_ending_condition()
-    {
-        return !is_null($this->session->slot) && $this->session->slot >= $this->tqg->__get("questions");
     }
 
 
