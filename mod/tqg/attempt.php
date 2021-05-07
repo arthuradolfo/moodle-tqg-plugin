@@ -24,11 +24,6 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->heading($cm->name);
 
-if ($session->check_ending_condition()) {
-    $session->process_session();
-    $session->finish();
-}
-
 if ($session->session->status >= tqg_session::STATUS_FINISHED) {
     echo $session->render_report();
     echo "<br>".get_string('form_link_description', 'tqg')."<a href='https://docs.google.com/forms/d/e/1FAIpQLSfvqY8GkdnXZUS6fGOP3EoO6s2__qVhLKQrmd7PAAN9JK48Rg/viewform?usp=sf_link'>".get_string('form_link', 'tqg')."</a>";
